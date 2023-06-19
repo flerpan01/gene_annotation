@@ -1,4 +1,24 @@
-get_ensembl <- function(chrom){
+sort_chrom <- function(d) {
+  d$chr <- sub("chr", "", d$chr)
+
+  # Sort table after chromosomes > start pos
+  d$chr <- sub("MT", 100, d$chr)
+  d$chr <- sub("X", 101, d$chr)
+  d$chr <- sub("Y", 102, d$chr)
+  d <- d[order(as.numeric(d$chr), d$start), ]
+  d$chr <- sub(100, "MT", d$chr)
+  d$chr <- sub(101, "X", d$chr)
+  d$chr <- sub(102, "Y", d$chr)
+  rownames(d) <- NULL
+  d$chr <- sub("^", "chr", d$chr)
+  
+  return(d)
+}
+
+# https://bioconductor.org/packages/release/bioc/html/biomaRt.html
+library(biomaRt)
+
+get_ensembl <- function(chrom = c(1:19, "MT", "X", "Y")){
   # listEnsembl() # list available datasets
   # mart <- useEnsembl(biomart="genes") # download all gene lists
   # searchDatasets(mart=mart, pattern="mus") # identify house mouse dataset
@@ -38,7 +58,8 @@ get_ensembl <- function(chrom){
     "gene_name",
     "entrez_id",  
     "gene_info", 
-    "gene_type")
+    "gene_type"
+  )
 
   ens <- subset(ens, chr %in% chrom)
   ens <- sort_chrom(ens)
@@ -61,3 +82,5 @@ get_ensembl <- function(chrom){
   print(paste("Total number of genes imported =", nrow(ens))) # 57287
   return(ens)
 }
+
+ens <- get_ensembl()
